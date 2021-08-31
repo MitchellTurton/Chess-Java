@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cd src
-javac dev/mitchellturton/chess/display/ChessGraphics.java -d ../bin/dev/mitchellturton/chess/display/
-javac dev/mitchellturton/chess/App.java -d ../bin/dev/mitchellturton/chess/
+javac dev/mitchellturton/chess/display/ChessGraphics.java -d ../bin/
+javac dev/mitchellturton/chess/Launcher.java -d ../bin/
 
 cd ../bin
-java dev/mitchellturton/chess/App
+java dev/mitchellturton/chess/Launcher
