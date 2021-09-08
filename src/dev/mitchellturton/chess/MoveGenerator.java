@@ -1,12 +1,27 @@
 package dev.mitchellturton.chess;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import dev.mitchellturton.chess.dataclass.ChessPosition;
 import dev.mitchellturton.chess.dataclass.Move;
 
 public class MoveGenerator {
+    /*
+    Generates all the moves for a giben piece in a certain position
+    */
+
+    public static Map<Character, Move> castlingRookMoves = new HashMap<Character, Move>()
+    {
+        {
+            put('l', new Move(0, 3));
+            put('r', new Move(7, 5));
+            put('L', new Move(56, 59));
+            put('R', new Move(63, 61));
+        }
+    };
 
     static List<Move> pawnMoves(ChessPosition position, int piecePos) {
         List<Move> legalMoves = new ArrayList<>();
@@ -95,6 +110,7 @@ public class MoveGenerator {
 
                 int nextPos = piecePos + offset * counter;
 
+                // Added the abs() checks to get rid of a bug where moves wrapped around the board
                 if (checkInBounds(getRow(nextPos), getFile(nextPos)) 
                     && Math.abs(getRow(piecePos) - getRow(nextPos)) == counter 
                         && Math.abs(getFile(piecePos) - getFile(nextPos)) == counter) {
@@ -172,6 +188,31 @@ public class MoveGenerator {
                 }
             }
         }
+
+        return legalMoves;
+    }
+
+    public static List<Move> castlingMoves(ChessPosition position, List<Move> moves) {
+        List<Move> legalMoves = new ArrayList<Move>();
+
+        byte castleInfo = position.getCastlingInfo();
+
+        if (position.getPlayingSide() == 1) {
+
+            if ((castleInfo & 48) == 48 && Move.listContainsMove(moves, castlingRookMoves.get('L')))
+                legalMoves.add(new Move(60, 58));
+            
+            if ((castleInfo & 40) == 40 && Move.listContainsMove(moves, castlingRookMoves.get('R'))) 
+                legalMoves.add(new Move(60, 62));
+        } else {
+
+            if ((castleInfo & 6) == 6 && Move.listContainsMove(moves, castlingRookMoves.get('l'))) 
+                legalMoves.add(new Move(4, 2));
+            if ((castleInfo & 1) == 1 && Move.listContainsMove(moves, castlingRookMoves.get('r'))) 
+                legalMoves.add(new Move(4, 6));
+        }
+
+        // System.out.println("CastleInfo: " + castleInfo + " Operator: 48 Result: " + (castleInfo & 48));
 
         return legalMoves;
     }

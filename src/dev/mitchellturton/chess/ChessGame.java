@@ -16,17 +16,31 @@ public class ChessGame {
     private List<ChessPosition> history;
     private List<Move> legalMoves;
 
+    private int selectedPiece;
+
+    static private int[] castlingPositions = new int[] {0, 4, 7, 56, 60, 63};
+
+    private boolean updateGraphics;
+
     public ChessGame() {
         currentPosition = new ChessPosition();
         updateLegalMoves();
+        this.history = new ArrayList<ChessPosition>();
+        selectedPiece = -1;
     }
 
     public ChessGame(String fenstring, int playingSide) {
         this.currentPosition = new ChessPosition(fenstring, playingSide);
+        currentPosition.setCastlingInfo((byte) 63);
         updateLegalMoves();
+        this.history = new ArrayList<ChessPosition>();
+        selectedPiece = -1;
     }
 
     public void updateLegalMoves() {
+        /*
+        Loops over each piece in the current position and generates their moves
+        */
         legalMoves = new ArrayList<Move>();
         byte[] board = currentPosition.getBoard();
 
@@ -55,22 +69,78 @@ public class ChessGame {
                 legalMoves.addAll(pieceMoves);
             }
         }
+
+        legalMoves.addAll(MoveGenerator.castlingMoves(currentPosition, legalMoves));
     }
 
     public void movePiece(Move move) {
-        updateHistory();
+        if (Move.listContainsMove(legalMoves, move)) {
+            updateHistory();
 
-        byte[] newBoard = currentPosition.getBoard();
-        newBoard[move.getFinalPos()] = currentPosition.getBoard()[move.getInitialPos()];
-        newBoard[move.getInitialPos()] = 0;
+            byte[] newBoard = currentPosition.getBoard();
+            newBoard[move.getFinalPos()] = currentPosition.getBoard()[move.getInitialPos()];
+            newBoard[move.getInitialPos()] = 0;
 
-        this.currentPosition = new ChessPosition(newBoard, -currentPosition.getPlayingSide());
+            this.currentPosition = new ChessPosition(newBoard, -currentPosition.getPlayingSide(), currentPosition.getCastlingInfo());
+
+            boolean castleMoved = false;
+
+            for (int i : castlingPositions) {
+                if (i == move.getInitialPos()) {
+                    castleMoved = true;
+                    break;
+                }
+            }
+            
+            if (castleMoved) {
+                if (Math.abs(newBoard[move.getFinalPos()]) == 6 && Math.abs(move.getInitialFile() - move.getFinalFile()) > 1) {
+                    final int initPos = move.getInitialPos();
+                    final int finalPos = move.getFinalPos();
+                    final int rookColor = -currentPosition.getPlayingSide();
+
+                    newBoard[finalPos + (initPos - finalPos) / 2] = (byte) (4 * rookColor);
+                    newBoard[finalPos + ((initPos - finalPos > 0) ? -2 : 1)] = 0;
+
+                    currentPosition.updateCastleInfo((finalPos > 35) ? 255 : -255);
+                } else {
+                    currentPosition.updateCastleInfo(move.getInitialPos());
+                }
+            }
+
+
+            movePlayed();
+        }
+    }
+ 
+    private void movePlayed() {
+        updateLegalMoves();
+        this.updateGraphics = true;
+    }
+
+    public void selectPiece(int piecePos) {
+        if (currentPosition.getBoard()[piecePos] * currentPosition.getPlayingSide() > 0) {
+            selectedPiece = piecePos;
+        }
+    }
+
+    public void unselectPiece() {
+        selectedPiece = -1;
+    }
+
+    public int getSelectedPiece() {
+        return selectedPiece;
+    }
+
+    public boolean isCurrentColor(int pos) {
+        if (currentPosition.getBoard()[pos] * currentPosition.getPlayingSide() > 0) 
+            return true;
+        else 
+            return false;
     }
 
     private void updateHistory() {
-        this.history.add(this.currentPosition);
+        this.history.add(currentPosition);
     }
-
 
     public List<Move> getLegalMoves() {
         return this.legalMoves;
@@ -78,5 +148,13 @@ public class ChessGame {
 
     public byte[] getBoard() {
         return this.currentPosition.getBoard();
+    }
+
+    public boolean updateGraphics() {
+        return updateGraphics;
+    }
+
+    public void setUpdateGraphics(boolean val) {
+        this.updateGraphics = val;
     }
 }

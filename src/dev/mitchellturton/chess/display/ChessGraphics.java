@@ -11,6 +11,9 @@ import dev.mitchellturton.chess.dataclass.Move;
 
 
 public class ChessGraphics {
+    /*
+    Class handling all of the actual drawing to the screen
+    */
     private Window window;
 
     private BufferStrategy bs;
@@ -48,6 +51,8 @@ public class ChessGraphics {
     }
 
     private void drawPosition() {
+        // Draws the pieces from the current position
+
         for (int i = 0; i < 64; i++) {
             g.drawImage(sprites[i], (i % 8) * squareSize, 
                         (int) Math.floor(i / 8) * squareSize, 
@@ -56,19 +61,26 @@ public class ChessGraphics {
     }
 
     private void highlightMoves() {
+        // Highlights squares a selected piece can move to
         
         for (Move move : chessGame.getLegalMoves()) {
-            // int row = move.getInitialRow();
-            // int file = move.getInitialFile();
-            int row = move.getFinalRow();
-            int file = move.getFinalFile();
-            
-            g.setColor(((row + file) % 2 == 0) ? darkHighlightColor : lightHighlightColor);
-            g.fillRect(file * squareSize, row * squareSize, squareSize, squareSize);
+            if (move.getInitialPos() == chessGame.getSelectedPiece()) {
+                int row = move.getFinalRow();
+                int file = move.getFinalFile();
+                
+                g.setColor(((row + file) % 2 == 0) ? darkHighlightColor : lightHighlightColor);
+                g.fillRect(file * squareSize, row * squareSize, squareSize, squareSize);
+            }
         }
     }
 
     public void renderWindow() {
+
+        if (chessGame.updateGraphics()) {
+            updateSprites();
+            chessGame.setUpdateGraphics(false);
+        }
+
         bs = window.getCanvas().getBufferStrategy();
         if (bs == null) {
             window.getCanvas().createBufferStrategy(3);
@@ -84,19 +96,13 @@ public class ChessGraphics {
 
         bs.show();
         g.dispose();
+
+        if (window.justClicked()) 
+            mousePressed(window.getMouseX(), window.getMouseY());
     }
 
-    public static void main(String[] args) {
-        ChessGraphics graph = new ChessGraphics("Chess", 800, 800);
-        
-        while (true) {
-            graph.renderWindow();
-        }
-    }
-
-    public void setChessGame(ChessGame game) {
-        this.chessGame = game;
-        byte[] chessBoard = game.getBoard();
+    public void updateSprites() {
+        byte[] chessBoard = chessGame.getBoard();
 
         sprites = new BufferedImage[64];
 
@@ -105,6 +111,25 @@ public class ChessGraphics {
 
             sprites[i] = ImageLoader.loadImage(pieceID);
         }
+    }
+
+    public void mousePressed(int mouseX, int mouseY) {
+        int row = mouseY / squareSize;
+        int file = mouseX / squareSize;
+
+        if (chessGame.isCurrentColor(row * 8 + file)) {
+            chessGame.selectPiece(row * 8 + file);
+        } else if (Move.listContainsMove(chessGame.getLegalMoves(), new Move(chessGame.getSelectedPiece(), row * 8 + file))){
+            chessGame.movePiece(new Move(chessGame.getSelectedPiece(), row * 8 + file));
+            chessGame.unselectPiece();
+        } else {
+            chessGame.unselectPiece();
+        }
+    }
+
+    public void setChessGame(ChessGame game) {
+        this.chessGame = game;
+        updateSprites();
     }
 
     public ChessGame getChessGame() {

@@ -1,14 +1,17 @@
 package dev.mitchellturton.chess.display;
 
-import java.util.*;
-import java.lang.Math;
-import java.io.IOException;
-import java.io.File;
-
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.imageio.ImageIO;
 
 public class ImageLoader {
+    /*
+    Loads the images needed for the piece sprites
+    */
     
     static Map<Integer, String> pieceNameMap = new HashMap<Integer, String>()
     {

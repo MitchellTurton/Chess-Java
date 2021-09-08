@@ -3,10 +3,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ChessPosition {
+    /*
+    Contains all the information needed to represent a single position on the
+    chess board
+    */
+
     final private byte[] board;
     final private byte playingSide;
+    private byte castleInfo;
+    // private byte canCastle;
 
     public static String startingFenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+
+    // Map used to generate a position from the chars of a fenstring to bytes representing a piece
     public static Map<Character, Integer> charToPieceMap = new HashMap<Character, Integer>()
     {
         {
@@ -19,8 +28,23 @@ public class ChessPosition {
         }
     };
 
+    private static Map<Integer, Integer> castlingBitKey = new HashMap<Integer, Integer>()
+    {
+        {
+            put(0, 2);     // Bl    00000010
+            put(4, 4);     // Bk    00000100
+            put(7, 1);     // Br    00000001
+            put(56, 16);   // Wl    00010000
+            put(60, 32);   // Wk    00100000
+            put(63, 8);    // Wr    00001000
+            put(-255, 7);  // All B 00000111
+            put(255, 56);  // All W 00111000
+        }
+    };
+
     public ChessPosition() {
         this(ChessPosition.startingFenString, 1);
+        this.castleInfo = 63;
     }
 
     public ChessPosition(String fenString, int playingSide) {
@@ -28,17 +52,20 @@ public class ChessPosition {
         this.playingSide = (byte) playingSide;
     }
 
-    public ChessPosition(byte[] board, int playingSide) {
-        this.board = board;
-        this.playingSide = (byte) playingSide;
+    public ChessPosition(byte[] board, int playingSide, byte castleInfo) {
+        this(board, (byte) playingSide, castleInfo);
     }
 
-    public ChessPosition(byte[] board, byte playingSide) {
+    public ChessPosition(byte[] board, byte playingSide, byte castleInfo) {
         this.board = board;
         this.playingSide = playingSide;
+        this.castleInfo = castleInfo;
     }
 
     public static byte[] loadFenString(String fenString) {
+        /*
+        Loads a position using the standard FEN representation 
+        */
         byte[] board = new byte[64];
 
         int row = 0, file = 0;
@@ -56,7 +83,7 @@ public class ChessPosition {
                 }
             } else {
                 int pieceVal = ChessPosition.charToPieceMap.get(Character.toLowerCase(currChar));
-                pieceVal *= (Character.isUpperCase(currChar)) ? 1 : -1;
+                pieceVal *= (Character.isUpperCase(currChar)) ? 1 : -1; // Color
                 board[row * 8 + file] = (byte) pieceVal;
 
                 file++;
@@ -67,14 +94,20 @@ public class ChessPosition {
     }
 
     public ChessPosition makeMove(ChessPosition pos, Move move) {
+        /*
+        Converts the current position to the next after a certain move is made
+        */
         byte[] newBoard = this.board;
         newBoard[move.getFinalPos()] = this.board[move.getInitialPos()];
         newBoard[move.getInitialPos()] = 0;
 
-        return new ChessPosition(newBoard, -this.playingSide);
+        return new ChessPosition(newBoard, -this.playingSide, this.castleInfo);
     }
 
     public void printBoard() {
+        /*
+        Prints the values of each piece to the terminal for debugging purposes
+        */
         System.out.print("[");
         for (int i = 1; i <= 64; i++) {
             System.out.print(this.board[i-1]);
@@ -90,25 +123,32 @@ public class ChessPosition {
         }
     }
 
-    /**
-     * @return byte[] return the board
-     */
+    public void updateCastleInfo(int pos) {
+        System.out.println("Removed: " + pos + " from castleInfo");
+        this.castleInfo = (byte) (this.castleInfo ^ castlingBitKey.get(pos));  // XOR
+        System.out.println("new CastleInfo: " + this.castleInfo);
+    }
+
+
     public byte[] getBoard() {
         return board;
     }
 
-    /**
-     * @return byte return the playingSide
-     */
     public int getPlayingSide() {
         return (int) playingSide;
+    }
+
+    public byte getCastlingInfo() {
+        return castleInfo;
+    }
+
+    public void setCastlingInfo(byte castleInfo) {
+        this.castleInfo = castleInfo;
     }
 
     public static void main(String[] args) {
         ChessPosition chess = new ChessPosition();
 
         chess.printBoard();
-
-        // System.out.println("R: " + ChessPosition.charToPieceMap.get('r'));
     }
 }
