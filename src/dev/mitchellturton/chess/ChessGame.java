@@ -85,6 +85,11 @@ public class ChessGame {
 
             boolean castleMoved = false;
 
+            // Promoting pawns to queen after reaching the other side
+            if (Math.abs(newBoard[move.getFinalPos()]) == 1 && (move.getFinalRow() == 0 || move.getFinalRow() == 7)) {
+                newBoard[move.getFinalPos()] *= 5;  // Taking advantage of the fact that the piece value is equal to 1 or -1
+            }
+
             for (int i : castlingPositions) {
                 if (i == move.getInitialPos()) {
                     castleMoved = true;

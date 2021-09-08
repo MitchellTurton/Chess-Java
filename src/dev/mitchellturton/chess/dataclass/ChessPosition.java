@@ -124,9 +124,7 @@ public class ChessPosition {
     }
 
     public void updateCastleInfo(int pos) {
-        System.out.println("Removed: " + pos + " from castleInfo");
         this.castleInfo = (byte) (this.castleInfo ^ castlingBitKey.get(pos));  // XOR
-        System.out.println("new CastleInfo: " + this.castleInfo);
     }
 
 
