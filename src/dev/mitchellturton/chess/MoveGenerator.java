@@ -55,7 +55,7 @@ public class MoveGenerator {
         }
 
         // Diagnal captures
-        for (int i = -1; i <= 1; i++) {
+        for (int i = -1; i <= 1; i+=2) {
             nextPos = piecePos + -color * 8 + i;
 
             if (0 <= nextPos && nextPos < 64) {

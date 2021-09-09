@@ -3,6 +3,7 @@ package dev.mitchellturton.chess;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.mitchellturton.chess.ai.RandomMoves;
 import dev.mitchellturton.chess.dataclass.ChessPosition;
 import dev.mitchellturton.chess.dataclass.Move;
 
@@ -120,6 +121,10 @@ public class ChessGame {
     private void movePlayed() {
         updateLegalMoves();
         this.updateGraphics = true;
+
+        if (currentPosition.getPlayingSide() == -1) {
+            movePiece(RandomMoves.getMove(legalMoves));
+        }
     }
 
     public void selectPiece(int piecePos) {
