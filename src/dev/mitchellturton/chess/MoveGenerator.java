@@ -217,6 +217,41 @@ public class MoveGenerator {
         return legalMoves;
     }
 
+    public static List<Move> generateMoves(ChessPosition pos) {
+        List<Move> moves = new ArrayList<Move>();
+        byte[] board = pos.getBoard();
+
+        for (int i = 0; i < 64; i++) {
+            if (board[i] * pos.getPlayingSide() > 0) {
+                List<Move> pieceMoves;
+
+                switch (Math.abs(board[i])) {
+                    case 1:  pieceMoves = MoveGenerator.pawnMoves(pos, i);
+                             break;
+                    case 2:  pieceMoves = MoveGenerator.knightMoves(pos, i);
+                             break;
+                    case 3:  pieceMoves = MoveGenerator.diagMoves(pos, i);
+                             break;
+                    case 4:  pieceMoves = MoveGenerator.horzMoves(pos, i);
+                             break;
+                    case 5:  pieceMoves = MoveGenerator.diagMoves(pos, i);
+                             pieceMoves.addAll(MoveGenerator.horzMoves(pos, i));
+                             break;
+                    case 6:  pieceMoves = MoveGenerator.kingMoves(pos, i);
+                             break;
+                    default: pieceMoves = new ArrayList<>();
+                             break;
+                }
+
+                moves.addAll(pieceMoves);
+            }
+        }
+
+        moves.addAll(MoveGenerator.castlingMoves(pos, moves));
+
+        return moves;
+    }
+
     private static boolean checkInBounds(int row, int file) {
         return (row <= 7 && row >= 0 && file <=7 && file >= 0);
     }

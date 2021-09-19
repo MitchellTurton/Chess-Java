@@ -7,8 +7,8 @@ public class Move {
     DataClass holding an initial and final position a pice can move to
     */
 
-    final private int initialPos;
-    final private int finalPos;
+    final public int initialPos;
+    final public int finalPos;
 
     public Move(int initialPos, int finalPos) {
         this.initialPos = initialPos;
@@ -18,16 +18,12 @@ public class Move {
     static public boolean listContainsMove(List<Move> moveList, Move move) {
 
         for (Move m : moveList) {
-            if (move.getInitialPos() == m.getInitialPos() && move.getFinalPos() == m.getFinalPos()) {
+            if (move.initialPos == m.initialPos && move.finalPos == m.finalPos) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    public int getInitialPos() {
-        return initialPos;
     }
 
     public int getInitialRow() {
@@ -36,10 +32,6 @@ public class Move {
 
     public int getInitialFile() {
         return initialPos % 8;
-    }
-
-    public int getFinalPos() {
-        return finalPos;
     }
 
     public int getFinalRow() {

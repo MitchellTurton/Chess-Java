@@ -20,7 +20,6 @@ public class Window {
     private int winWidth, winHeight;
 
     private MouseManager mouseManager;
-    private boolean mouseClicked;
 
     public Window() {
         this("Window", 800, 800);

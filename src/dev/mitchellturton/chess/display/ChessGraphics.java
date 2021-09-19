@@ -64,7 +64,7 @@ public class ChessGraphics {
         // Highlights squares a selected piece can move to
         
         for (Move move : chessGame.getLegalMoves()) {
-            if (move.getInitialPos() == chessGame.getSelectedPiece()) {
+            if (move.initialPos == chessGame.getSelectedPiece()) {
                 int row = move.getFinalRow();
                 int file = move.getFinalFile();
                 

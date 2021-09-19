@@ -13,10 +13,10 @@ public class ChessPosition {
     private byte castleInfo;
     // private byte canCastle;
 
-    public static String startingFenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    final public static String startingFenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
     // Map used to generate a position from the chars of a fenstring to bytes representing a piece
-    public static Map<Character, Integer> charToPieceMap = new HashMap<Character, Integer>()
+    final public static Map<Character, Integer> charToPieceMap = new HashMap<Character, Integer>()
     {
         {
             put('p', 1);
@@ -28,7 +28,7 @@ public class ChessPosition {
         }
     };
 
-    private static Map<Integer, Integer> castlingBitKey = new HashMap<Integer, Integer>()
+    final private static Map<Integer, Integer> castlingBitKey = new HashMap<Integer, Integer>()
     {
         {
             put(0, 2);     // Bl    00000010
@@ -37,10 +37,12 @@ public class ChessPosition {
             put(56, 16);   // Wl    00010000
             put(60, 32);   // Wk    00100000
             put(63, 8);    // Wr    00001000
-            put(-255, 7);  // All B 00000111
-            put(255, 56);  // All W 00111000
+            put(-127, 7);  // All B 00000111
+            put(127, 56);  // All W 00111000
         }
     };
+
+    final static private int[] castlingPositions = new int[] {0, 4, 7, 56, 60, 63};
 
     public ChessPosition() {
         this(ChessPosition.startingFenString, 1);
@@ -93,13 +95,44 @@ public class ChessPosition {
         return board;
     }
 
-    public ChessPosition makeMove(ChessPosition pos, Move move) {
+    public ChessPosition makeMove(Move move) {
         /*
         Converts the current position to the next after a certain move is made
         */
-        byte[] newBoard = this.board;
-        newBoard[move.getFinalPos()] = this.board[move.getInitialPos()];
-        newBoard[move.getInitialPos()] = 0;
+
+        final int initPos = move.initialPos;
+        final int finalPos = move.finalPos;
+
+        byte[] newBoard = new byte[64];
+
+        for (int i = 0; i < 64; i++) {
+            newBoard[i] = this.board[i];
+        }
+
+        newBoard[finalPos] = this.board[initPos];
+        newBoard[initPos] = 0;
+
+        boolean isCastle = false;
+
+        for (int i : castlingPositions) {
+            if (i == move.initialPos) {
+                isCastle = true;
+                break;
+            }
+        }
+
+        if (isCastle) {
+            if (Math.abs(newBoard[move.finalPos]) == 6 && Math.abs(move.getInitialFile() - move.getFinalFile()) > 1) {
+                final int rookColor = this.playingSide;
+
+                newBoard[finalPos + (initPos - finalPos) / 2] = (byte) (4 * rookColor);
+                newBoard[finalPos + ((initPos - finalPos > 0) ? -2 : 1)] = 0;
+
+                updateCastleInfo((finalPos > 32) ? 127 : -127);
+            } else {
+                updateCastleInfo(initPos);
+            }
+        }
 
         return new ChessPosition(newBoard, -this.playingSide, this.castleInfo);
     }
